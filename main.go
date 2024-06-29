@@ -30,6 +30,26 @@ func main() {
 
 	fmt.Println(time.Since(now))
 
+	safeMap := NewSafeMap()
+
+	// Store a value
+	safeMap.Set("key1", "value1")
+
+	// Load a value
+	if value, ok := safeMap.Get("key1"); ok {
+		fmt.Println("Loaded value:", value)
+	}
+
+	// Delete a value
+	safeMap.Delete("key1")
+
+	// Load a value after deletion
+	if value, ok := safeMap.Get("key1"); !ok {
+		fmt.Println("Key not found")
+	} else {
+		fmt.Println("Loaded value:", value)
+	}
+
 	s := Server{
 		msgch: make(chan Message),
 	}
