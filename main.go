@@ -7,23 +7,6 @@ import (
 )
 
 func main() {
-	s := Server{
-		msgch: make(chan Message),
-	}
-	wg := &sync.WaitGroup{}
-
-	go s.StartAndListen(wg)
-
-	for i := 0; i < 10; i++ {
-		go sendMessageToServer(s.msgch, fmt.Sprint(i), fmt.Sprint(i*i))
-		wg.Add(1)
-	}
-	wg.Wait()
-	go func() {
-
-		shutDownServer(s.quitch)
-
-	}()
 
 	now := time.Now()
 
@@ -46,6 +29,24 @@ func main() {
 	}
 
 	fmt.Println(time.Since(now))
+
+	s := Server{
+		msgch: make(chan Message),
+	}
+	wg := &sync.WaitGroup{}
+
+	go s.StartAndListen(wg)
+
+	for i := 0; i < 10; i++ {
+		go sendMessageToServer(s.msgch, fmt.Sprint(i), fmt.Sprint(i*i))
+		wg.Add(1)
+	}
+	wg.Wait()
+	go func() {
+
+		shutDownServer(s.quitch)
+
+	}()
 
 }
 
