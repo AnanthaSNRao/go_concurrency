@@ -50,6 +50,14 @@ func main() {
 		fmt.Println("Loaded value:", value)
 	}
 
+	g := GetInstance(9)
+
+	fmt.Printf("fist instance of singelton: %v \n", g)
+
+	f := GetInstance(10)
+
+	fmt.Printf("Second instance of singelton: %v \n", f)
+
 	s := Server{
 		msgch: make(chan Message),
 	}
@@ -58,8 +66,8 @@ func main() {
 	go s.StartAndListen(wg)
 
 	for i := 0; i < 10; i++ {
-		go sendMessageToServer(s.msgch, fmt.Sprint(i), fmt.Sprint(i*i))
 		wg.Add(1)
+		go sendMessageToServer(s.msgch, fmt.Sprint(i), fmt.Sprint(i*i))
 	}
 	wg.Wait()
 	go func() {
