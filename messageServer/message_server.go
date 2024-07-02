@@ -1,4 +1,4 @@
-package main
+package messageserver
 
 import (
 	"fmt"
@@ -15,6 +15,12 @@ type Server struct {
 	quitch chan struct{}
 }
 
+func GetInstance(msgch chan Message) *Server {
+	return &Server{
+		msgch: msgch,
+	}
+}
+
 func (s *Server) StartAndListen(wg *sync.WaitGroup) {
 free:
 	for {
@@ -27,7 +33,7 @@ free:
 		}
 	}
 }
-func sendMessageToServer(msgch chan Message, from string, payload string) {
+func SendMessageToServer(msgch chan Message, from string, payload string) {
 	msg := Message{
 		From:    from,
 		Payload: payload,
@@ -36,6 +42,6 @@ func sendMessageToServer(msgch chan Message, from string, payload string) {
 	msgch <- msg
 }
 
-func shutDownServer(quitch chan struct{}) {
-	close(quitch)
+func (s *Server) ShutDownServer() {
+	close(s.quitch)
 }

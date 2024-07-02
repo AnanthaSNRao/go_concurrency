@@ -3,34 +3,17 @@ package main
 import (
 	"fmt"
 	"sync"
-	"time"
+
+	ms "github.com/go-concurrency/messageServer"
+	singelton "github.com/go-concurrency/singelton"
+	tsmap "github.com/go-concurrency/threadsafemap"
+	user "github.com/go-concurrency/user"
 )
 
 func main() {
+	user.GetAllUsersdeatils()
 
-	now := time.Now()
-
-	wg1 := &sync.WaitGroup{}
-	respch := make(chan string, 3)
-
-	go getUserDetails(1, respch, wg1)
-	wg1.Add(1)
-	go getUserReccomendatations(1, respch, wg1)
-	wg1.Add(1)
-	go getUserPermissions(1, respch, wg1)
-	wg1.Add(1)
-
-	wg1.Wait()
-
-	close(respch)
-
-	for resp := range respch {
-		fmt.Println(resp)
-	}
-
-	fmt.Println(time.Since(now))
-
-	safeMap := NewSafeMap()
+	safeMap := tsmap.NewSafeMap()
 
 	// Store a value
 	safeMap.Set("key1", "value1")
@@ -50,56 +33,30 @@ func main() {
 		fmt.Println("Loaded value:", value)
 	}
 
-	g := GetInstance(9)
+	g := singelton.GetInstance(9)
 
 	fmt.Printf("fist instance of singelton: %v \n", g)
 
-	f := GetInstance(10)
+	f := singelton.GetInstance(10)
 
 	fmt.Printf("Second instance of singelton: %v \n", f)
+	msgch := make(chan ms.Message)
 
-	s := Server{
-		msgch: make(chan Message),
-	}
+	s := ms.GetInstance(msgch)
+
 	wg := &sync.WaitGroup{}
 
 	go s.StartAndListen(wg)
 
 	for i := 0; i < 10; i++ {
 		wg.Add(1)
-		go sendMessageToServer(s.msgch, fmt.Sprint(i), fmt.Sprint(i*i))
+		go ms.SendMessageToServer(msgch, fmt.Sprint(i), fmt.Sprint(i*i))
 	}
 	wg.Wait()
 	go func() {
 
-		shutDownServer(s.quitch)
+		s.ShutDownServer()
 
 	}()
 
-}
-
-func getUserDetails(userId int, respch chan string, wg *sync.WaitGroup) {
-
-	time.Sleep(80 * time.Millisecond)
-
-	respch <- fmt.Sprintf("user Deaitls: %v", userId)
-
-	wg.Done()
-}
-
-func getUserReccomendatations(userId int, respch chan string, wg *sync.WaitGroup) {
-	time.Sleep(120 * time.Millisecond)
-
-	respch <- fmt.Sprintf("user Reccomendatation: %v", userId)
-
-	wg.Done()
-
-}
-
-func getUserPermissions(userId int, respch chan string, wg *sync.WaitGroup) {
-	time.Sleep(50 * time.Millisecond)
-
-	respch <- fmt.Sprintf("user Permissions: %v", userId)
-
-	wg.Done()
 }
